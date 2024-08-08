@@ -1,0 +1,328 @@
+#!/bin/bash
+
+ip=192.168.20.101
+senha="1"
+ipServer=10.0.2.222
+passWord="11203419"
+x="teste"
+
+function ChaveHash {
+    sshpass -p $senha ssh -o StrictHostKeyChecking=no root@$ip 'exit'
+}
+
+function ErroSaquePix {
+    echo "Corrigindo erros de Saque PIX"
+
+    IPs=()
+
+    while true; do
+        read -p "Digite o IP ou 'f' para finalizar a entrada: " ip
+        if [[ "$ip" == "f" ]]; then
+            break
+        fi
+        IPs+=("$ip")
+    done
+
+    for ip in "${IPs[@]}"; do
+        echo "Verificando o IP $ip..."
+        ssh-keyscan $ip >> ~/.ssh/known_hosts 2>/dev/null
+
+        if sshpass -p $senha ssh root@$ip 'cd /mpos/maxipos/pos/ && find . -type f \( -name "memory_88871.ser" -o -name "memory_88872.ser" -o -name "memory_88877.ser" \) -delete'; then
+            echo "Arquivos deletados com sucesso para o IP $ip."
+            sleep 3
+            echo "REINICIANDO ...."
+            sshpass -p $senha ssh root@$ip 'reboot; exit'
+        else
+            echo "Falha ao deletar arquivos para o IP $ip."
+            echo "FALHA NA COMUNICAÇÃO"
+        fi
+    done
+}
+
+function ErroModoGrafico {
+    echo "Corrigindo erros de Modo Gráfico"
+    echo "Digite o número do IP (ex. XXX.XXX.XX.XX):"
+    read ip
+    sleep 2
+    ChaveHash
+
+    echo "Apagando o arquivo ps-update-imagens.sh em /usr/local/sbin/ no IP $ip"
+    
+    if sshpass -p $senha ssh root@$ip 'cd /usr/local/sbin/ && rm -f it-update-imagens.sh'
+    then
+        echo "Arquivo ps-update-imagens.sh encontrado e apagado com sucesso."
+    else
+        echo "Falha ao apagar o arquivo ps-update-imagens.sh."
+    fi
+
+    echo "Apagando o arquivo ps-update-imagens-forced.sh em /usr/local/sbin/ no IP $ip"
+    
+    if sshpass -p $senha ssh root@$ip 'cd /usr/local/sbin/ && rm -f it-update-imagens-forced.sh'
+    then
+        echo "Arquivo ps-update-imagens-forced.sh encontrado e apagado com sucesso."
+    else
+        echo "Falha ao apagar o arquivo ps-update-imagens-forced.sh."
+    fi
+    
+    echo "PROCESSANDO ...."
+    #sshpass -p $senha ssh root@$ip 'reboot;exit'
+}
+
+
+
+function AtualizarVersao {
+    echo "================================================"
+    echo "Atualizar a versão e imagem do PDV"
+    echo "Escolha o tipo de loja:"
+    echo "1) Super"
+    echo "2) Mix"
+    echo "3) Camino"
+    echo "4) Armazem"
+    echo "5) Outro"
+    echo "6) Sair"
+    echo "================================================"
+
+    read -p "Digite a opção desejada: " opcao_versao
+
+    case "$opcao_versao" in
+1)
+    echo "Escolhido: Mateus SUPER"
+    echo "Qual o IP do PDV EX XXX.XXX.XX.XX: ?"
+    read ip
+    sleep 2
+    ChaveHash #function pw hash
+        echo "tranferindo a o arquivo jar...."
+        sleep 3
+    if sshpass -p $senha scp -r /home/joelson/PDV/ver_1.8.3/* root@$ip:/mpos/maxipos/pos/bin/
+        echo "feito..."
+
+    then
+        echo "Atualizando ..."
+
+        # Chamada do script img.sh com caminho completo para /home/joelson/img.sh
+       #/usr/local/bin/img.sh "$ip" "root" "$senha"
+       echo "Atualizando ..."
+
+        if [ $? -eq 0 ]; then
+        sleep 5
+
+            echo "Script '/home/joelson/img.sh' executado com sucesso."
+
+            sshpass -p $senha ssh root@$ip 'reboot;exit'
+        else
+            echo "Falha ao executar '/home/joelson/img.sh'."
+        fi
+    else
+        echo "Falha ao copiar arquivos para o servidor remoto."
+    fi
+
+echo "================================================"
+;;
+
+        2)
+            echo "Escolhido: Mix"
+            # Adicione a função para atualizar a versão Mix
+            echo "Qual o IP do PDV EX XXX.XXX.XX.XX: ?"
+    read ip
+    sleep 2
+    ChaveHash #function pw hash
+        echo "tranferindo a o arquivo jar...."
+        sleep 3
+    if sshpass -p $senha scp -r -q /home/joelson/PDV/ver_1.8.3/* root@$ip:/mpos/maxipos/pos/bin/
+        echo "feito..."
+
+    then
+        echo "Atualizando ..."
+
+        # Chamada do script img.sh com caminho completo para /home/joelson/img.sh
+       #/usr/local/bin/imgMix.sh "$ip" "root" "$senha"
+       
+
+        if [ $? -eq 0 ]; then
+        sleep 5
+
+            echo "Script '/home/joelson/img.sh' executado com sucesso."
+
+            sshpass -p $senha ssh root@$ip 'reboot;exit'
+        else
+            echo "Falha ao executar '/home/joelson/img.sh'."
+        fi
+    else
+        echo "Falha ao copiar arquivos para o servidor remoto."
+    fi
+
+echo "================================================"
+
+            ;;
+
+ 3)
+            echo "Escolhido: Camino"
+            # Adicione a função para atualizar a versão Camino
+            echo "Qual o IP do PDV EX XXX.XXX.XX.XX: ?"
+    read ip
+    sleep 2
+    ChaveHash #function pw hash
+        echo "tranferindo a o arquivo jar...."
+        sleep 3
+    if sshpass -p $senha scp -r -q /home/joelson/PDV/ver_1.8.3/* root@$ip:/mpos/maxipos/pos/bin/
+        echo "feito..."
+
+    then
+        echo "Atualizando ..."
+
+        # Chamada do script img.sh com caminho completo para /home/joelson/img.sh
+       #/usr/local/bin/imgCamino.sh "$ip" "root" "$senha"
+
+        if [ $? -eq 0 ]; then
+        sleep 5
+
+            echo "Script '/home/joelson/img.sh' executado com sucesso."
+
+            sshpass -p $senha ssh root@$ip 'reboot;exit'
+        else
+            echo "Falha ao executar '/home/joelson/img.sh'."
+        fi
+    else
+        echo "Falha ao copiar arquivos para o servidor remoto."
+    fi
+
+echo "================================================"
+
+            ;;
+        4)
+            echo "Escolhido: Armazem"
+            # Adicione a função para atualizar a versão Armazem
+            ;;
+        5)
+            echo "Escolhido: Outro"
+            # Adicione a função para atualizar outra versão
+            ;;
+        6)
+            echo "Saindo do submenu..."
+	    break ;;
+            
+        *)
+            echo "Opção inválida!"
+            ;;
+    esac
+}
+
+
+function menu {
+    while true $x != "teste"
+    do
+        clear
+        echo "================================================"
+        echo "PROCESSO PDV"
+        echo "ESCOLHA A OPÇÃO"
+        echo ""
+        echo "1) Atualizar a versão"
+        echo "2) Colocar PDV versão (VR:1.0.0)"
+        echo "3) ATUALIZAR CLISITEF"
+        echo "4) EXPORTAR ARQUIVOS DE CUMPOM PARA LOJA ESPECIFICADA"
+        echo "5) PIX TOKEN - MODO GRÁFICO"
+        echo "6) TECLADO SMARK / CLISITEF/"
+        echo "7) MUDAR PORTA P PINPAD"
+        echo "8) PDV 64 BITS"
+        echo "9) Sair do programa"
+        echo "================================================"
+
+        echo "Digite a opção desejada:"
+        read x
+        echo "Opção informada ($x)"
+        echo "================================================"
+
+        case "$x" in
+            1) AtualizarVersao ;;
+            2)
+                echo "Qual o IP do PDV para RETORNAR A VERSÃO 1.0.0 EX XXX.XXX.XX.XX: ?"
+                read ip
+                sleep 2
+                ChaveHash
+                echo "Transferindo o arquivo jar...."
+                sleep 3
+                if sshpass -p $senha scp -r /home/ver_1.0.0/* root@$ip:/mpos/maxipos/pos/bin/
+                then
+                    echo "Feito..."
+                    echo "Atualizando ..."
+                    /home/joelson/img.sh  "$ip" "$senha"  "root"
+                    if [ $? -eq 0 ]; then
+                        sleep 5
+                        #echo "Script '/home/joelson/img.sh' executado com sucesso."
+                        sshpass -p $senha ssh root@$ip 'reboot;exit'
+                    else
+                        echo "Falha ao executar '/home/joelson/img.sh'."
+                    fi
+                else
+                    echo "Falha ao copiar arquivos para o servidor remoto."
+                fi
+                ;;
+            3)
+                echo "Qual o IP do PDV para atualizar: ?"
+                read ip
+                sleep 2
+                ChaveHash
+                if ClisitefA
+                then
+                    echo "Atualizando ..."
+                    sshpass -p $senha ssh root@$ip 'reboot;exit'
+                fi
+                ;;
+            4)
+                echo "Digite as informações solicitadas"
+                /home/scripts/bkp.sh
+                sleep 5
+                ;;
+            5)
+                while true
+                do
+                    clear
+                    echo "================================================"
+                    echo "ERRO DE SAQUE PIX - MODO GRÁFICO"
+                    echo "ESCOLHA A OPÇÃO"
+                    echo ""
+                    echo "1) ERRO PIX TOKEN - NO MESSAGE AVAILABLE"
+                    echo "2) Corrigir erros de Modo Gráfico"
+                    echo "3) Voltar ao Menu Principal"
+                    echo "================================================"
+
+                    echo "Digite a opção desejada:"
+                    read sub_opcao
+
+                    case "$sub_opcao" in
+                        1) ErroSaquePix ;;
+                        2) ErroModoGrafico ;;
+                        3) break ;;
+                        *) echo "Opção inválida!" ;;
+                    esac
+                done
+                ;;
+            6)
+                echo "Qual o IP do PDV que deseja corrigir e atualizar EX XXX.XXX.XX.XX: ?"
+                read ip
+                sleep 2
+                ChaveHash
+                ClisitefA
+                smark
+                ;;
+            7)
+                sleep 2
+                /home/joelson/pinpad.sh
+                ;;
+            8)
+                echo "ACESSAR PDV 64Bits"
+                ;;               
+            9)
+                echo "Saindo..."
+                sleep 5
+                clear;
+                exit;
+                ;;
+            *)
+                echo "Opção inválida!"
+                ;;
+        esac
+    done
+}
+
+menu
